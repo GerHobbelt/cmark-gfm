@@ -5,13 +5,9 @@
 #include "node.h"
 #include "houdini.h"
 #include "cmark-gfm.h"
+#include "cmark-gfm-core-extensions.h"
 #include "buffer.h"
 #include "parser.h"
-#include "autolink.h"
-#include "strikethrough.h"
-#include "table.h"
-#include "tagfilter.h"
-#include "tasklist.h"
 
 cmark_node_type CMARK_NODE_LAST_BLOCK = CMARK_NODE_FOOTNOTE_DEFINITION;
 cmark_node_type CMARK_NODE_LAST_INLINE = CMARK_NODE_FOOTNOTE_REFERENCE;
@@ -61,25 +57,29 @@ char *cmark_markdown_to_html(const char *text, size_t len, int options) {
 }
 
 char *cmark_gfm_markdown_to_html(const char *text, size_t len, int options) {
-  cmark_node *doc = NULL;
-  cmark_parser *parser = NULL;
+  cmark_parser *parser;
+  cmark_node *doc;
   char *result;
+  static const char *const extension_names[] = {
+    "autolink", "strikethrough", "table", "tagfilter", "tasklist",
+  };
 
-  parser = cmark_parser_new_with_mem(options, cmark_get_arena_mem_allocator());
-  cmark_parser_attach_syntax_extension(parser, create_autolink_extension());
-  cmark_parser_attach_syntax_extension(parser, create_strikethrough_extension());
-  cmark_parser_attach_syntax_extension(parser, create_table_extension());
-  cmark_parser_attach_syntax_extension(parser, create_tagfilter_extension());
-  cmark_parser_attach_syntax_extension(parser, create_tasklist_extension());
+  cmark_gfm_core_extensions_ensure_registered();
+
+  parser = cmark_parser_new(options);
+  for (size_t i = 0; i < sizeof(extension_names) / sizeof(extension_names[0]); i++) {
+    cmark_syntax_extension *ext = cmark_find_syntax_extension(extension_names[i]);
+    if (ext != NULL) {
+      cmark_parser_attach_syntax_extension(parser, ext);
+    }
+  }
 
   cmark_parser_feed(parser, text, len);
   doc = cmark_parser_finish(parser);
 
-  cmark_mem *mem = cmark_get_default_mem_allocator();
-  result = cmark_render_html_with_mem(doc, options, parser->syntax_extensions, mem);
-  cmark_parser_free(parser);
+  result = cmark_render_html(doc, options, parser->syntax_extensions);
   cmark_node_free(doc);
-  cmark_arena_reset();
+  cmark_parser_free(parser);
 
   return result;
 }
