@@ -43,7 +43,7 @@ static void html_render(cmark_syntax_extension *extension,
       unsigned char *e = p + node->content.size;
       int minus_pending = 0;
       cmark_html_render_cr(html);
-      cmark_strbuf_puts(html, "<a id=\"#");
+      cmark_strbuf_puts(html, "<a id=\"");
       for (; p < e; p++)
       {
         unsigned int c = *p;
