@@ -267,7 +267,7 @@ typedef void (*cmark_opaque_free_func) (cmark_syntax_extension *extension,
 /** Free a cmark_syntax_extension.
  */
 CMARK_GFM_EXPORT
-void cmark_syntax_extension_free               (cmark_mem *mem, cmark_syntax_extension *extension);
+void cmark_syntax_extension_free               (cmark_mem *mem, void *extension);
 
 /** Return a newly-constructed cmark_syntax_extension, named 'name'.
  */

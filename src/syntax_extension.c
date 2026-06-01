@@ -9,7 +9,8 @@ extern cmark_mem CMARK_DEFAULT_MEM_ALLOCATOR;
 
 static cmark_mem *_mem = &CMARK_DEFAULT_MEM_ALLOCATOR;
 
-void cmark_syntax_extension_free(cmark_mem *mem, cmark_syntax_extension *extension) {
+void cmark_syntax_extension_free(cmark_mem *mem, void *arg) {
+  cmark_syntax_extension *extension = (cmark_syntax_extension *) arg;
   if (extension->free_function && extension->priv) {
     extension->free_function(mem, extension->priv);
   }
